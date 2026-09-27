@@ -71,7 +71,7 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
     <div class="mode-btn on" data-mode="now"><b>近期寻亲</b><small>路上疑似看到走失的孩子，快速比对</small></div>
     <div class="mode-btn" data-mode="past"><b>寻亲自查</b><small>怀疑自己的身世，检索历史档案</small></div>
   </div>
-  <div class="frow" id="nowRow"><span class="tt">时间：</span><div class="tags"><span class="tag on" data-span="1y">近1年</span><span class="tag" data-span="6m">近半年</span><span class="tag" data-span="3m">近3个月</span><span class="tag" data-span="1m">近1个月</span></div></div>
+  <div class="frow" id="nowRow"><span class="tt">时间：</span><div class="tags"><span class="tag on" data-span="1y">近1年</span><span class="tag" data-span="3y">近3年</span><span class="tag" data-span="5y">近5年</span><span class="tag" data-span="10y">近10年</span></div></div>
   <div class="frow" id="pastRow" style="display:none"><span class="tt">年代：</span><div class="tags"><span class="tag on" data-dec="">全部</span><span class="tag" data-dec="d2020">2020年代</span><span class="tag" data-dec="d2010">2010年代</span><span class="tag" data-dec="d2000">2000年代</span><span class="tag" data-dec="d1990">1990年代</span><span class="tag" data-dec="old">更早</span></div></div>
 
   <div class="search"><input id="q" placeholder="搜索姓名、编号、失踪地点、年份…如：陈小娟 / 福建 / 1992"></div>
@@ -102,22 +102,16 @@ var kw = '', selK = '', selT = '', selP = '';
 var selMode = 'now', selSpan = '1y', selDec = '';
 var shown = 0, PAGE = 30;
 function esc(s){ var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
-// 登记时间解析为天数（用于"近期寻亲"时间过滤）
-function daysSince(reg){
-  var s = String(reg || '').replace(/[年月]/g, '-').replace(/日/g, '').split('-');
-  var y = +s[0] || 0, mo = s.length > 1 ? (+s[1] || 1) : 1, d = s.length > 2 ? (+s[2] || 1) : 1;
-  if(!y) return 1e9;
-  return Math.floor((Date.now() - new Date(y, mo - 1, d).getTime()) / 86400000);
-}
+// 近期模式按失踪年份过滤（"刚丢失的"给路人快速比对）；历史模式按年代区间过滤（给寻亲自查）
 function inTime(r){
+  var my = +r.m || 0;
   if(selMode === 'now'){
-    var ds = daysSince(r.r);
-    if(selSpan === '1m' && ds > 31) return false;
-    if(selSpan === '3m' && ds > 95) return false;
-    if(selSpan === '6m' && ds > 190) return false;
-    if(selSpan === '1y' && ds > 370) return false;
+    if(!my) return false;
+    if(selSpan === '1y' && my < 2025) return false;
+    if(selSpan === '3y' && my < 2023) return false;
+    if(selSpan === '5y' && my < 2021) return false;
+    if(selSpan === '10y' && my < 2016) return false;
   } else {
-    var my = +r.m || 0;
     if(selDec === 'd2020' && (!my || my < 2020)) return false;
     if(selDec === 'd2010' && (my < 2010 || my >= 2020)) return false;
     if(selDec === 'd2000' && (my < 2000 || my >= 2010)) return false;
