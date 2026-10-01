@@ -36,8 +36,14 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
 .tag.on{background:var(--blue);color:#fff;border-color:var(--blue)}
 .tags{display:flex;gap:8px;flex-wrap:wrap}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px;display:flex;gap:12px}
-.ph{width:64px;height:80px;object-fit:cover;border-radius:10px;background:#eef1f6;flex:0 0 auto;border:1px solid var(--line)}
+.ph{width:64px;height:80px;object-fit:cover;border-radius:10px;background:#eef1f6;flex:0 0 auto;border:1px solid var(--line);cursor:zoom-in}
 .phnone{width:64px;height:80px;border-radius:10px;background:#eef1f6;display:flex;align-items:center;justify-content:center;color:#c3ccdb;font-size:22px;flex:0 0 auto;border:1px solid var(--line)}
+.lb-mask{position:fixed;inset:0;background:rgba(0,0,0,.74);display:none;align-items:center;justify-content:center;z-index:99;padding:24px}
+.lb-box{background:var(--card);border-radius:16px;max-width:90vw;overflow:hidden;text-align:center}
+.lb-img{max-width:84vw;max-height:60vh;display:block;margin:0 auto;object-fit:contain}
+.lb-info{padding:12px 16px 16px;font-size:13px;color:var(--sub);line-height:1.7}
+.lb-info b{color:var(--txt)}
+.lb-close{position:fixed;top:14px;right:18px;font-size:28px;color:#fff;cursor:pointer;z-index:100;padding:6px;line-height:1}
 .cbody{flex:1;min-width:0}
 .row1{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .nm{font-size:16px;font-weight:700}
@@ -195,7 +201,7 @@ function render(){
     if(r.m) info += '<span>报失：<b>' + esc(r.m) + '</b></span>';
     if(r.p) info += '<span>地点：<b>' + esc(r.p) + (r.c ? ' ' + esc(r.c) : '') + '</b></span>';
     if(r.i) info += '<span>编号：<b>' + esc(r.i) + '</b></span>';
-    var ph = r.ph ? '<img class="ph" src="missing_imgs/' + esc(r.i) + '.jpg" alt="照片由登记人提供，仅供参考" title="照片由登记人提供，可能并非本人，仅供参考" loading="lazy" onerror="this.remove()">' : '<div class="phnone">?</div>';
+    var ph = r.ph ? '<img class="ph" src="missing_imgs/' + esc(r.i) + '.jpg" alt="照片由登记人提供，仅供参考" title="点击放大 · 照片由登记人提供，可能并非本人，仅供参考" loading="lazy" onerror="this.remove()" onclick="showPhoto(' + "'" + esc(r.i) + "'" + ',' + "'" + esc(r.n) + "'" + ')">' : '<div class="phnone">?</div>';
     var featline = (r.f && r.f.length > 2) ? '<div class="feat">特征：' + esc(r.f.slice(0, 42)) + '</div>' : '';
     html += '<div class="card">' + ph +
       '<div class="cbody"><div class="row1"><span class="nm">' + esc(r.n) + '</span>' + badge + '</div>' +
@@ -258,8 +264,26 @@ document.getElementById('provToggle').addEventListener('click', function(){
   document.getElementById('provWrap').style.display = open ? '' : 'none';
 });
 document.getElementById('moreBtn').addEventListener('click', function(){ shown += PAGE; render(); });
+// 照片点击放大（原站详情可能无照片，站内直接看大图）
+function showPhoto(id, name){
+  var mask = document.getElementById('lbMask');
+  var img = document.getElementById('lbImg');
+  img.src = 'missing_imgs/' + id + '.jpg';
+  img.onerror = function(){ img.style.display = 'none'; document.getElementById('lbInfo').innerHTML = '<b>' + esc(name) + '</b> · 编号 ' + id + '<br>照片未能加载（本地未收录此档案照片）'; };
+  img.onload = function(){ img.style.display = 'block'; };
+  document.getElementById('lbInfo').innerHTML = '<b>' + esc(name) + '</b> · 编号 ' + id + '<br><span style="font-size:12px">照片由登记人提供，可能并非本人，仅供参考，请以原站描述与详情为准</span>';
+  mask.style.display = 'flex';
+}
+function closePhoto(){ document.getElementById('lbMask').style.display = 'none'; }
 renderTags();
 refresh();
 </script>
+<div class="lb-mask" id="lbMask" onclick="if(event.target===this)closePhoto()">
+  <span class="lb-close" onclick="closePhoto()">×</span>
+  <div class="lb-box">
+    <img class="lb-img" id="lbImg" src="" alt="">
+    <div class="lb-info" id="lbInfo"></div>
+  </div>
+</div>
 </body>
 </html>
